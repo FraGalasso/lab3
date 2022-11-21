@@ -1,9 +1,11 @@
 #include <cmath>
+#include <fstream>
 #include <iostream>
 
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TGraphErrors.h"
+#include "TLatex.h"
 
 Double_t linear(Double_t* x, Double_t* par) {
   Double_t xx = x[0];
@@ -12,27 +14,38 @@ Double_t linear(Double_t* x, Double_t* par) {
 }
 
 void lin_fit() {
-  // gStyle->SetOptFit(1111);
+  gStyle->SetOptFit(11);
+  gStyle->SetFitFormat("5.2f");
 
-  Double_t corr[16] = {0.01, 0.02, 0.03, 0.04, 0.05, 0.07, 0.09, 0.12,
-                       0.13, 0.17, 0.23, 0.32, 0.48, 0.70, 1.16, 1.75};
-  Double_t xx[16];
-  Double_t yy[16] = {360, 380, 400, 420, 440, 450, 460, 470,
-                     480, 490, 500, 520, 540, 560, 580, 600};
   Double_t ex[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  Double_t ey[16] = {15, 15, 16, 16, 24, 17, 17, 17,
-                     25, 18, 18, 25, 43, 26, 44, 27};
+  Double_t current[16];
+  Double_t yy[16];
+  Double_t ey[16];
+  std::ifstream myfile;
+  myfile.open("lin_Si.txt");
+  double a;
+  int j = 0;
+  while (myfile >> a) {
+    if ((j % 3) == 0) {
+      current[j / 3] = a;
+    } else if ((j % 3) == 1) {
+      yy[j / 3] = a;
+    } else {
+      ey[j / 3] = a;
+    }
+    ++j;
+  }
+  myfile.close();
 
+  Double_t xx[16];
   for (int i = 0; i < 16; ++i) {
-    xx[i] = log(corr[i]);
+    xx[i] = log(current[i]);
   }
 
   Double_t xx_[16];
-  Double_t yy_[16];
   Double_t ex_[16];
-  Double_t ey_[16];
   for (int i = 0; i < 16; ++i) {
-    xx_[i] = log(1000 * corr[i]);
+    xx_[i] = log(1000 * current[i]);
     ex_[i] = 1000 * ex[i];
   }
 
@@ -45,14 +58,13 @@ void lin_fit() {
   // gr1->SetFillStyle(3010);
   gr1->GetXaxis()->SetTitle("ln(I) (mA)");
   gr1->GetYaxis()->SetTitle("V (mV)");
-  // gr1->GetXaxis()->SetLimits(0., 900.);
-  // gr1->GetYaxis()->SetLimits(0., 900.);
 
   TF1* f1 = new TF1("f1", linear, -5, 1, 2);
   gr1->Fit("f1", "EX0, Q");
   TF1* fit1 = gr1->GetFunction("f1");
   fit1->SetLineColor(kGreen);
   fit1->SetLineWidth(2);
+  fit1->SetParNames("-#etaV_{T}lnI_{0}", "#eta V_{T}");
 
   double chi_square = fit1->GetChisquare() / fit1->GetNDF();
   double intercept = fit1->GetParameter(0);
@@ -71,7 +83,7 @@ void lin_fit() {
   gr2->SetLineColor(kBlue);
   // gr2->SetFillColor(kGreen);
   // gr2->SetFillStyle(3010);
-  gr2->GetXaxis()->SetTitle("ln(I) (uA)");
+  gr2->GetXaxis()->SetTitle("ln(I) (#muA)");
   gr2->GetYaxis()->SetTitle("V (mV)");
 
   TF1* f2 = new TF1("f2", linear, 2, 8, 2);
@@ -79,6 +91,7 @@ void lin_fit() {
   TF1* fit2 = gr2->GetFunction("f2");
   fit2->SetLineColor(kGreen);
   fit2->SetLineWidth(2);
+  fit2->SetParNames("-#etaV_{T}lnI_{0}", "#eta V_{T}");
 
   chi_square = fit2->GetChisquare() / fit2->GetNDF();
   intercept = fit2->GetParameter(0);

@@ -12,10 +12,11 @@ Double_t linear(Double_t* x, Double_t* par) {
 
 void calibration() {
    gStyle->SetOptFit(11);
-   gStyle->SetFitFormat("5.2g");
+   gStyle->SetFitFormat("5.2f");
 
   TGraphErrors* graph = new TGraphErrors("calibration.txt", "%lg %lg %lg", "");
   graph->SetTitle("Calibration Fit");
+  graph->SetMarkerSize(1);
   graph->SetMarkerStyle(kFullCircle);
   graph->SetMarkerColor(kBlue);
   graph->SetLineColor(kBlue);
@@ -30,7 +31,7 @@ void calibration() {
   TF1* fit = graph->GetFunction("f1");
   fit->SetLineColor(kGreen);
   fit->SetLineWidth(2);
-  fit->SetParNames("Intercept", "Slope");
+  fit->SetParNames("Intercept (mV)", "Slope");
 
   double chi_square = fit->GetChisquare() / fit->GetNDF();
   double intercept = fit->GetParameter(0);
