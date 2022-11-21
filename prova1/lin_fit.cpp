@@ -4,8 +4,10 @@
 
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TFitResult.h"
 #include "TGraphErrors.h"
 #include "TLatex.h"
+#include "TMatrixD.h"
 
 Double_t linear(Double_t* x, Double_t* par) {
   Double_t xx = x[0];
@@ -60,21 +62,33 @@ void lin_fit() {
   gr1->GetYaxis()->SetTitle("V (mV)");
 
   TF1* f1 = new TF1("f1", linear, -5, 1, 2);
-  gr1->Fit("f1", "EX0, Q");
+  TFitResultPtr r1 = gr1->Fit("f1", "S, EX0, Q");
   TF1* fit1 = gr1->GetFunction("f1");
   fit1->SetLineColor(kGreen);
   fit1->SetLineWidth(2);
   fit1->SetParNames("-#etaV_{T}lnI_{0}", "#eta V_{T}");
 
-  double chi_square = fit1->GetChisquare() / fit1->GetNDF();
-  double intercept = fit1->GetParameter(0);
-  double slope = fit1->GetParameter(1);
-  double e_int = fit1->GetParError(0);
-  double e_sl = fit1->GetParError(1);
+  Double_t chi_square = fit1->GetChisquare() / fit1->GetNDF();
+  Double_t intercept = fit1->GetParameter(0);
+  Double_t slope = fit1->GetParameter(1);
+  Double_t e_int = fit1->GetParError(0);
+  Double_t e_sl = fit1->GetParError(1);
 
-  std::cout << "Fit with mA:\nIntercept: " << intercept << " +/- " << e_int
-            << "\nSlope: " << slope << " +/- " << e_sl
-            << "\nReduced Chi Square: " << chi_square << '\n';
+  Double_t det = (r1->GetCovarianceMatrix()).Determinant();
+  Double_t Vaa = e_int * e_int;
+  Double_t Vbb = e_sl * e_sl;
+  Double_t Vab = sqrt(Vaa * Vbb - det);
+  Double_t i_0 = exp(-intercept / slope);
+  Double_t e_I0 =
+      sqrt((i_0 / slope) * (i_0 / slope) * Vaa +
+           (intercept * i_0 / slope * slope) *
+               (intercept * i_0 / slope * slope) * Vbb +
+           2 * (i_0 / slope) * (intercept * i_0 / slope * slope) * Vab);
+
+  std::cout << "\nFit with mA:\nEtaVt*ln(I0): " << intercept << " +/- " << e_int
+            << "\nEtaVt: " << slope << " +/- " << e_sl << "\nI0: " << i_0
+            << " +/- " << e_I0 << "\nReduced Chi Square: " << chi_square
+            << '\n';
 
   TGraphErrors* gr2 = new TGraphErrors(16, xx_, yy, ex_, ey);
   gr2->SetTitle("Linear Fit");
@@ -99,9 +113,20 @@ void lin_fit() {
   e_int = fit2->GetParError(0);
   e_sl = fit2->GetParError(1);
 
-  std::cout << "Fit with uA:\nIntercept: " << intercept << " +/- " << e_int
-            << "\nSlope: " << slope << " +/- " << e_sl
-            << "\nReduced Chi Square: " << chi_square << '\n';
+  det = (r1->GetCovarianceMatrix()).Determinant();
+  Vaa = e_int * e_int;
+  Vbb = e_sl * e_sl;
+  Vab = sqrt(Vaa * Vbb - det);
+  i_0 = exp(-intercept / slope);
+  e_I0 = sqrt((i_0 / slope) * (i_0 / slope) * Vaa +
+              (intercept * i_0 / slope * slope) *
+                  (intercept * i_0 / slope * slope) * Vbb +
+              2 * (i_0 / slope) * (intercept * i_0 / slope * slope) * Vab);
+
+  std::cout << "\nFit with uA:\nEtaVt*ln(I0): " << intercept << " +/- " << e_int
+            << "\nEtaVt: " << slope << " +/- " << e_sl << "\nI0: " << i_0
+            << " +/- " << e_I0 << "\nReduced Chi Square: " << chi_square
+            << '\n';
 
   TCanvas* can = new TCanvas("can", "canvas", 200, 10, 600, 800);
   can->Divide(1, 2);
