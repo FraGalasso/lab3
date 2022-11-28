@@ -17,12 +17,12 @@ Double_t linear(Double_t* x, Double_t* par) {
 
 void lin_fit() {
   gStyle->SetOptFit(11);
-  gStyle->SetFitFormat("5.2f");
+  gStyle->SetFitFormat("5.0f");
 
-  Double_t ex[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  Double_t current[16];
-  Double_t yy[16];
-  Double_t ey[16];
+  Double_t ex[18] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  Double_t current[18];
+  Double_t yy[18];
+  Double_t ey[18];
   std::ifstream myfile;
   myfile.open("lin_Si.txt");
   double a;
@@ -39,19 +39,19 @@ void lin_fit() {
   }
   myfile.close();
 
-  Double_t xx[16];
-  for (int i = 0; i < 16; ++i) {
+  Double_t xx[18];
+  for (int i = 0; i < 18; ++i) {
     xx[i] = log(current[i]);
   }
 
-  Double_t xx_[16];
-  Double_t ex_[16];
-  for (int i = 0; i < 16; ++i) {
+  Double_t xx_[18];
+  Double_t ex_[18];
+  for (int i = 0; i < 18; ++i) {
     xx_[i] = log(1000 * current[i]);
     ex_[i] = 1000 * ex[i];
   }
 
-  TGraphErrors* gr1 = new TGraphErrors(16, xx, yy, ex, ey);
+  TGraphErrors* gr1 = new TGraphErrors(18, xx, yy, ex, ey);
   gr1->SetTitle("Linear Fit");
   gr1->SetMarkerStyle(kFullCircle);
   gr1->SetMarkerColor(kBlue);
@@ -62,7 +62,7 @@ void lin_fit() {
   gr1->GetYaxis()->SetTitle("V (mV)");
 
   TF1* f1 = new TF1("f1", linear, -5, 1, 2);
-  TFitResultPtr r1 = gr1->Fit("f1", "S, EX0, Q");
+  TFitResultPtr r1 = gr1->Fit("f1", "S, R, EX0, Q");
   TF1* fit1 = gr1->GetFunction("f1");
   fit1->SetLineColor(kGreen);
   fit1->SetLineWidth(2);
@@ -90,7 +90,7 @@ void lin_fit() {
             << " +/- " << e_I0 << "\nReduced Chi Square: " << chi_square
             << '\n';
 
-  TGraphErrors* gr2 = new TGraphErrors(16, xx_, yy, ex_, ey);
+  TGraphErrors* gr2 = new TGraphErrors(18, xx_, yy, ex_, ey);
   gr2->SetTitle("Linear Fit");
   gr2->SetMarkerStyle(kFullCircle);
   gr2->SetMarkerColor(kBlue);
@@ -101,7 +101,7 @@ void lin_fit() {
   gr2->GetYaxis()->SetTitle("V (mV)");
 
   TF1* f2 = new TF1("f2", linear, 2, 8, 2);
-  gr2->Fit("f2", "EX0, Q");
+  gr2->Fit("f2", "EX0, R, Q");
   TF1* fit2 = gr2->GetFunction("f2");
   fit2->SetLineColor(kGreen);
   fit2->SetLineWidth(2);
