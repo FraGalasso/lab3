@@ -19,10 +19,12 @@ void exp_fit() {
   gStyle->SetOptFit(11);
   gStyle->SetFitFormat("5.2g");
 
-  Double_t ey[18] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  Double_t xx[18];
-  Double_t yy[18];
-  Double_t ex[18];
+  int N = 18;  // number of points
+
+  Double_t ey[N];
+  Double_t xx[N];
+  Double_t yy[N];
+  Double_t ex[N];
   std::ifstream myfile;
   myfile.open("exp_Si.txt");
   double a;
@@ -30,6 +32,7 @@ void exp_fit() {
   while (myfile >> a) {
     if ((j % 3) == 0) {
       xx[j / 3] = a;
+      ey[j / 3] = 0;
     } else if ((j % 3) == 1) {
       yy[j / 3] = a;
     } else {
@@ -39,7 +42,7 @@ void exp_fit() {
   }
   myfile.close();
 
-  TGraphErrors* gr1 = new TGraphErrors(18, xx, yy, ex, ey);
+  TGraphErrors* gr1 = new TGraphErrors(N, xx, yy, ex, ey);
   gr1->SetTitle("Exponential Fit");
   gr1->SetMarkerStyle(kFullCircle);
   gr1->SetMarkerColor(kBlue);
@@ -55,7 +58,7 @@ void exp_fit() {
   TF1* fit1 = gr1->GetFunction("f1");
   fit1->SetLineColor(kGreen);
   fit1->SetLineWidth(2);
-    fit1->SetParNames("I_{0}", "#etaV_{T}");
+  fit1->SetParNames("I_{0}", "#etaV_{T}");
 
   double chi_square = fit1->GetChisquare() / fit1->GetNDF();
   double I_0 = fit1->GetParameter(0);
