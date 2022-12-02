@@ -105,7 +105,7 @@ void lin_fit() {
 
   TF1* f2 = new TF1("f2", linear, -5, 1, 2);
   // range for Ge is [-4, 2]; range for Si is [-5, 1]
-  gr2->Fit("f2", "EX0, R, Q");
+  TFitResultPtr r2 = gr2->Fit("f2", "S, EX0, R, Q");
   TF1* fit2 = gr2->GetFunction("f2");
   fit2->SetLineColor(kGreen);
   fit2->SetLineWidth(2);
@@ -117,7 +117,7 @@ void lin_fit() {
   e_int = fit2->GetParError(0);
   e_sl = fit2->GetParError(1);
 
-  det = (r1->GetCovarianceMatrix()).Determinant();
+  det = (r2->GetCovarianceMatrix()).Determinant();
   Vaa = e_int * e_int;
   Vbb = e_sl * e_sl;
   Vab = sqrt(Vaa * Vbb - det);
