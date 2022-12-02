@@ -19,7 +19,7 @@ void lin_fit() {
   gStyle->SetOptFit(11);
   gStyle->SetFitFormat("5.0f");
 
-  int N = 18;  // number of points
+  int N = 18;  // number of points: 16 for Ge, 18 for Si
 
   Double_t ex[N];
   Double_t current[N];
@@ -47,6 +47,7 @@ void lin_fit() {
     xx[i] = log(current[i]);
   }
 
+  // correction from calibration
   Double_t yy_[N];
   Double_t ey_[N];
   for (int i = 0; i < N; ++i) {
@@ -99,9 +100,7 @@ void lin_fit() {
   gr2->SetMarkerStyle(kFullCircle);
   gr2->SetMarkerColor(kBlue);
   gr2->SetLineColor(kBlue);
-  // gr2->SetFillColor(kGreen);
-  // gr2->SetFillStyle(3010);
-  gr2->GetXaxis()->SetTitle("ln(I) (#muA)");
+  gr2->GetXaxis()->SetTitle("ln(I) (mA)");
   gr2->GetYaxis()->SetTitle("V (mV)");
 
   TF1* f2 = new TF1("f2", linear, -5, 1, 2);
